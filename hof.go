@@ -47,3 +47,13 @@ func Chunk[T any](src []T, size int) iter.Seq[[]T] {
 		}
 	}
 }
+
+func Reduce[T, U any](src []T, init U, fn func(U, T) U) iter.Seq[U] {
+	return func(yield func(U) bool) {
+		acc := init
+		for _, v := range src {
+			acc = fn(acc, v)
+		}
+		yield(acc)
+	}
+}
