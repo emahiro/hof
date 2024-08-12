@@ -131,3 +131,64 @@ func TestChunk(t *testing.T) {
 		}
 	}
 }
+
+func TestReduce(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   func() any
+		want any
+	}{
+		{
+			name: "reduce[int]",
+			fn: func() any {
+				got := 0
+				Reduce([]int{1, 2, 3, 4, 5}, 0, func(acc, v int) int { return acc + v })(func(v int) bool {
+					got = v
+					return true
+				})
+				return got
+			},
+			want: 15,
+		},
+		{
+			name: "reduce[string]",
+			fn: func() any {
+				got := ""
+				Reduce([]string{"a", "b", "c"}, "", func(acc, v string) string { return acc + v })(func(v string) bool {
+					got = v
+					return true
+				})
+				return got
+			},
+			want: "abc",
+		},
+		{
+			name: "reduce[map]",
+			fn: func() any {
+				got := map[int]string{}
+				Reduce([]int{1, 2, 3}, map[int]string{}, func(acc map[int]string, v int) map[int]string {
+					acc[v] = fmt.Sprint(v)
+					return acc
+				})(func(v map[int]string) bool {
+					got = v
+					return true
+				})
+				return got
+			},
+			want: map[int]string{
+				1: "1",
+				2: "2",
+				3: "3",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.fn()
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Fatalf("(-got +want)\n%s", diff)
+			}
+		})
+	}
+}
