@@ -57,3 +57,13 @@ func Reduce[T, U any](src []T, init U, fn func(U, T) U) iter.Seq[U] {
 		yield(acc)
 	}
 }
+
+func Reduce2[K comparable, V, U any](src map[K]V, init U, fn func(U, K, V) U) iter.Seq[U] {
+	return func(yield func(U) bool) {
+		acc := init
+		for k, v := range src {
+			acc = fn(acc, k, v)
+		}
+		yield(acc)
+	}
+}
