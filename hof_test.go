@@ -192,3 +192,64 @@ func TestReduce(t *testing.T) {
 		})
 	}
 }
+
+func TestReduce2(t *testing.T) {
+	tests := []struct {
+		name string
+		fn   func() any
+		want any
+	}{
+		{
+			name: "reduce2[int]",
+			fn: func() any {
+				got := 0
+				Reduce2(map[int]int{1: 1, 2: 2, 3: 3}, 0, func(acc, k, v int) int { return acc + k + v })(func(v int) bool {
+					got = v
+					return true
+				})
+				return got
+			},
+			want: 12,
+		},
+		{
+			name: "reduce2[string]",
+			fn: func() any {
+				got := ""
+				Reduce2(map[string]string{"a": "a", "b": "b", "c": "c"}, "", func(acc, k, v string) string { return acc + k + v })(func(v string) bool {
+					got = v
+					return true
+				})
+				return got
+			},
+			want: "abc",
+		},
+		{
+			name: "reduce2[map]",
+			fn: func() any {
+				got := map[int]string{}
+				Reduce2(map[int]int{1: 1, 2: 2, 3: 3}, map[int]string{}, func(acc map[int]string, k, v int) map[int]string {
+					acc[k] = fmt.Sprint(v)
+					return acc
+				})(func(v map[int]string) bool {
+					got = v
+					return true
+				})
+				return got
+			},
+			want: map[int]string{
+				1: "1",
+				2: "2",
+				3: "3",
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := tt.fn()
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Fatalf("(-got +want)\n%s", diff)
+			}
+		})
+	}
+}
